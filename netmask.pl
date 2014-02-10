@@ -1,32 +1,36 @@
 #!/usr/bin/env perl
 
+# Does not always return expected results
+# eg. 192.168.5.0/23 generates an exception, although 192.168.0.0/23 works
+
 use Net::IP;
 
-#my $iprange = new Net::IP('192.168.5.0/24');
-my $inputRange = $ARGV[0];
-my $iprange = new Net::IP($inputRange);
+my $ipRange = $ARGV[0] || die "Error: gimme a mug o' yer finest CIDR\n";
 
-my $ipsize = $iprange->size();
-my $startIPint = $iprange->intip();
-my $endIPint = $startIPint + $ipsize - 1;
+testHandler();
 
-my $startIP = inttoip($startIPint);
-my $endIP = inttoip($endIPint);
+sub testHandler {
+	my %testIP = returnStartEnd($ipRange);
+	print("Number of IPs : " . $testIP{'ipCount'} . "\n");
+	print("Starting IP   : " . $testIP{'start'} . "\n");
+	print("Ending IP     : " . $testIP{'end'} . "\n");
+}
 
-#print "Range : $iprange\n";
-print "Size : $ipsize\n";
-print "startIPint : $startIPint\n";
-print "endIPint : $endIPint\n";
-print "startIP : $startIP\n";
-print "endIP : $endIP\n";
+sub returnStartEnd {
+	my $checkRange = new Net::IP(@_);
 
-my @checkArr = returnArray();
-print "Check 1 : " . $checkArr[0] . "\n";
-print "Check 2 : " . $checkArr[1] . "\n";
+	my $startIPInt = $checkRange->intip();
+	my $startIP = inttoip($startIPInt);
 
-my %checkHash = returnHash();
-print "Check 1 : " . $checkHash{'start'} . "\n";
-print "Check 2 : " . $checkHash{'end'} ."\n";
+	%ipHash = ();
+	$ipHash { 'ipCount' } = $checkRange->size();
+	$ipHash { 'start' } = inttoip($startIPInt);
+
+	my $endIPInt = $startIPInt + $ipHash{'ipCount'} - 1;
+	$ipHash { 'end' } = inttoip($endIPInt);
+
+	return %ipHash;
+}
 
 sub inttoip {
 	my($inputInt) = @_;
@@ -38,19 +42,4 @@ sub inttoip {
 	my $IP=$IPArray[3] . '.' . $IPArray[2] . '.' . $IPArray[1] . '.' . $IPArray[0];
 	return $IP;
 }
-
-sub returnArray {
-	my @returnArr = ();
-	push @returnArr, 5;
-	push @returnArr, 55;
-	return @returnArr;	
-}
-
-sub returnHash {
-	%retHash = ();
-	$retHash { 'start' } = 192;
-	$retHash { 'end' } = 256;
-	return %retHash;
-}
-
 
